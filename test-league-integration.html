@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>League Integration Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .info { background-color: #d1ecf1; color: #0c5460; }
+    </style>
+</head>
+<body>
+    <h1>FORMULA PADEL V2.0 - League Integration Test</h1>
+    
+    <div id="test-results"></div>
+    
+    <script>
+        // Test League Manager functionality
+        async function testLeagueIntegration() {
+            const results = document.getElementById('test-results');
+            
+            // Test 1: Check if LeagueManager class exists
+            try {
+                // Simulate loading the league-manager.js
+                const response = await fetch('league-manager.js');
+                const code = await response.text();
+                
+                if (code.includes('class LeagueManager')) {
+                    results.innerHTML += '<div class="test-section success">✅ LeagueManager class found in league-manager.js</div>';
+                } else {
+                    results.innerHTML += '<div class="test-section error">❌ LeagueManager class not found</div>';
+                }
+                
+                // Test 2: Check DOPPIO PUNTEGGIO implementation
+                if (code.includes('gamePoints') && code.includes('matchBonus')) {
+                    results.innerHTML += '<div class="test-section success">✅ DOPPIO PUNTEGGIO system implemented</div>';
+                } else {
+                    results.innerHTML += '<div class="test-section error">❌ DOPPIO PUNTEGGIO system not found</div>';
+                }
+                
+                // Test 3: Check updateLeagueFromMatch method
+                if (code.includes('updateLeagueFromMatch')) {
+                    results.innerHTML += '<div class="test-section success">✅ updateLeagueFromMatch method found</div>';
+                } else {
+                    results.innerHTML += '<div class="test-section error">❌ updateLeagueFromMatch method not found</div>';
+                }
+                
+            } catch (error) {
+                results.innerHTML += '<div class="test-section error">❌ Error loading league-manager.js: ' + error.message + '</div>';
+            }
+            
+            // Test 4: Check HTML League tab structure
+            try {
+                const htmlResponse = await fetch('index.html');
+                const html = await htmlResponse.text();
+                
+                if (html.includes('id="tabLeague"')) {
+                    results.innerHTML += '<div class="test-section success">✅ League tab button found in HTML</div>';
+                } else {
+                    results.innerHTML += '<div class="test-section error">❌ League tab button not found</div>';
+                }
+                
+                if (html.includes('id="leaguePanel"')) {
+                    results.innerHTML += '<div class="test-section success">✅ League panel found in HTML</div>';
+                } else {
+                    results.innerHTML += '<div class="test-section error">❌ League panel not found</div>';
+                }
+                
+                if (html.includes('league-manager.js')) {
+                    results.innerHTML += '<div class="test-section success">✅ League manager script included in HTML</div>';
+                } else {
+                    results.innerHTML += '<div class="test-section error">❌ League manager script not included</div>';
+                }
+                
+            } catch (error) {
+                results.innerHTML += '<div class="test-section error">❌ Error loading index.html: ' + error.message + '</div>';
+            }
+            
+            // Test 5: Check rounds manager integration
+            try {
+                const roundsResponse = await fetch('rounds-manager.js');
+                const roundsCode = await roundsResponse.text();
+                
+                if (roundsCode.includes('this.app.leagueManager.updateLeagueFromMatch')) {
+                    results.innerHTML += '<div class="test-section success">✅ League integration found in rounds manager</div>';
+                } else {
+                    results.innerHTML += '<div class="test-section error">❌ League integration not found in rounds manager</div>';
+                }
+                
+            } catch (error) {
+                results.innerHTML += '<div class="test-section error">❌ Error loading rounds-manager.js: ' + error.message + '</div>';
+            }
+            
+            // Test 6: Check app.js integration
+            try {
+                const appResponse = await fetch('app.js');
+                const appCode = await appResponse.text();
+                
+                if (appCode.includes('this.leagueManager = new LeagueManager')) {
+                    results.innerHTML += '<div class="test-section success">✅ League manager initialization found in app.js</div>';
+                } else {
+                    results.innerHTML += '<div class="test-section error">❌ League manager initialization not found in app.js</div>';
+                }
+                
+                if (appCode.includes("'league'")) {
+                    results.innerHTML += '<div class="test-section success">✅ League tab included in tab management</div>';
+                } else {
+                    results.innerHTML += '<div class="test-section error">❌ League tab not included in tab management</div>';
+                }
+                
+            } catch (error) {
+                results.innerHTML += '<div class="test-section error">❌ Error loading app.js: ' + error.message + '</div>';
+            }
+            
+            results.innerHTML += '<div class="test-section info">📋 Integration test completed. Check results above.</div>';
+        }
+        
+        // Run tests when page loads
+        testLeagueIntegration();
+    </script>
+</body>
+</html>

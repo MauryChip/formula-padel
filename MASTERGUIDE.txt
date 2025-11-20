@@ -1,0 +1,474 @@
+================================================================================
+                           FORMULA PADEL - MASTER GUIDE
+================================================================================
+
+PROGETTO: Sistema di gestione torneo padel completo
+DATA: 9 Novembre 2025
+VERSIONE: Clean Start - V2.0
+
+================================================================================
+                              OBIETTIVO PRINCIPALE
+================================================================================
+
+Creare un'applicazione web completa per gestire tornei di padel con:
+- Gestire l'impostazione del torneo con i parametri critici
+    - Nome del torneo
+    - Numero di Giocatori - Np
+        - Numero di Teams che si possono creare per ogni round - Nt = Np/2
+    - Numero di campi su cui giocare - Nc
+    - Numero di Round da disputare:
+        - RoundMax = Np/2 - 1 (ogni giocatore può affrontare tutti gli altri della categoria opposta)
+        - LOGICA: 16 players = 8 COLORS + 8 BEASTS → 1 COLOR vs 7 diversi COLORS = 7 rounds max
+        - RoundMin = numero che garantisce equilibrio match per tutti i giocatori
+        - Vincolo riposi: Nessun player riposa 2 round consecutivi
+        - Algoritmo riposi: Round 1 sorteggio casuale, Round 2+ priorità a chi ha riposato
+    - Durata dei match - MatchDuration
+- Gestione giocatori 
+    - Creare un set di giocatori di default
+    - Consentire l'editing dei parametri
+    - Creazione del RAnking dei giocatore in base al parametro - PlayerScore
+    - Dividere i players in 2 categorie in modo dinamico tra i top 50% del ranking con nome BEASTS e il bottom 50% con nome categoria COLORS
+    - Associare ad ogni player un Alias e un Icon identificativi causali estratti tra un set predefinito - Alais_Id
+    - Salvare il set di giocatori prima di abilitare i TEAMS 
+- Generazione teams automatica
+    - Generare un gruppo di TEAMS per ogni Round
+    - Implementare i requisiti di TEAMS fondamentali
+        - Ogni Teams creato tra un player della categoria COLORS e uno della categoria BEASTS estratti a caso
+        - Ogni TEAMS ha un nome composto da Player_Coloro_Alias & " " & Player_Beast_Alias
+        - Ogni TEAMS ha uno score pari alla media degli score dei singoli players Team_score= (Player_color_score + players_beast)/2
+        - I TEAMS vengono messi in un ranking sulla base dello score medio Team_score , Team(N) N posizione nel ranking
+        - I TEAMS vengono salvati prima di procedere al gruppo di TEAMS successivo 
+        - Il round successivo deve essere creato con lo stesso meccanismo ma evitando i dupplicati, quindi per ogni giocatore colors puo essere estratto un giocatore BEAST da un sottoelenco pari al elenco iniziale meno i players con cui ha gia giocato nei round precedenti
+        - Se il numero di Courts Nc è minore del numero di TEAMS Nt/2 allora ci saranno TEAM in riserva 
+        - I TEAMs in riserva seguono algoritmo riposi con priorità:
+            * Round 1: Sorteggio casuale determina chi gioca e chi riposa
+            * Round 2+: Players che hanno riposato hanno priorità di gioco
+            * Vincolo: Nessun player riposa 2 round consecutivi
+        - Rotazione alternata garantisce equilibrio match per tutti
+
+- Sistema round con match cards
+    - I rounds possono essere generati una volta confermati i TEAMS del Gruppo corrispondente, Gruppo teams 1 --> Round 1
+    - Rounds sono definiti con modello Team(N) vs Team(N+1)
+    - I Rounds vengono definiti dal accopiamento dei TEAMS in base al ranking dei TEAMS in modo da avere lo scarto minimo tra gli score dei teams Score_delta = Team(N)_Score - Team(N+1)_score
+    - L'abbinamento deve fare un eccezione se i player di TeamA e TeamB si sono gia affrontati nel Round precedente, in quel caso Team(N) vs Team(N+2) e Team(N+1) vs Team(N+3) e aggiustamenti successivi
+    - IMPORTANTE: Il controllo duplicati è NICE TO HAVE - NON deve bloccare la generazione rounds se complesso
+    - Priorità: FUNZIONALITÀ BASE > PERFEZIONE algoritmo
+    - I Rounds sono presentati congiuntamente con caselle per l'inserimento dei risultati
+    - Ogni match è presentato con un countdown timer sulla base del MAtch_Duration
+    - Ogni match ha un taso Close the match to save the results
+    - Una volta che tutti i risultati sono salvati è possibile generare un nuovo round 
+
+- Classifica finale
+    - Gestione della classifica in base ai risulatati dei match in ogni round
+    - SISTEMA SCORING DOPPIO:
+        * GAME POINTS: 1 punto per ogni game vinto (anche perdendo il match)
+        * MATCH BONUS: +1 punto per vincere l'intero match
+    - ESEMPIO: Match 6-3 → Vincitore: 6 game points + 1 match bonus = 7 punti | Perdente: 3 game points + 0 match bonus = 3 punti
+    - La classifica mostra:
+        - Player Name
+        - Games Won (somma game points ottenuti)
+        - Games Lost (somma game persi)
+        - Matches Won (numero di match vinti)
+        - Total Points (game points + match bonuses)
+        - Game Difference (games won - games lost)
+        - Matches Played (numero di match giocati)
+
+
+USARE LINGUA INGLESE per l'interfaccia
+
+================================================================================
+                               FUNZIONALITÀ CORE
+================================================================================
+
+1. GESTIONE GIOCATORI
+   - [PRIORITÀ: ALTA]
+   - Crea un set di giocatori di default su base di assortimento predefinato
+   - Aggiunta/rimozione giocatori
+   - Creazione ranking e split in categoria BEAST e COLOR
+   - Profili con nome, skill level, Alias e Alias Emoji, categoria
+   - Editing dei dati, nome, alias (pickup list)
+   - Import/export database giocatori
+
+2. GENERAZIONE TEAMS
+   - [PRIORITÀ: ALTA] 
+   - Algoritmo bilanciato per formare coppie
+   - Crea un gruppo di TEAMS per ogni ROUND
+   - I TEAMS non si ripetono in Round successivi, mantiene lo storico dei TEAMS confermati
+   - Crea un ranking basato sullo score medio dei giocatori del team
+   - Preview e conferma teams necessaria per poter passare al panello ROUNDS
+
+3. SISTEMA ROUNDS ⭐ FOCUS PRINCIPALE ⭐
+   - [PRIORITÀ: MASSIMA]
+   - Frame collassabile "ROUND 1", "ROUND 2", etc.
+   - All'interno: match cards individuali per ogni MATCH 
+   - Ogni match card contiene:
+     * TEAM NAME 1 vs TEAM NAME 2
+     * Emojis TEAM A e Emoji TEAM B
+     * Nome dei giocatori
+     * Score boxes (input numerici)
+     * Timer con tasti START/STOP
+     * Pulsante SAVE MATCH
+    - Round successivo gneerato quando tutti i match hanno risultati salvati 
+
+4. CLASSIFICA LIVE
+   - [PRIORITÀ: MEDIA]
+   - Sistema scoring doppio: Game points (1 per game vinto) + Match bonus (1 per match vinto)
+   - Aggiornamento automatico dopo ogni match
+   - Colonne: Games Won/Lost, Matches Won, Total Points, Game Difference
+   - Export risultati finali
+   - Animazione Podio finale 
+
+================================================================================
+                          DECISIONI ARCHITETTURALI FINALI
+================================================================================
+
+## DATABASE & STORAGE STRATEGY
+
+**1. NOMI DEFAULT:**
+- ✅ **BUCKET STORAGE**: 32 players template in database
+- ✅ **DYNAMIC DEFAULT**: Load subset based on tournament size (8,16,24,32)
+- Bucket → Default → Edit with real names
+- Facilità aggiornamento bucket senza ricompilare codice
+
+**2. PLAYER ALIASES:**
+- ✅ **EMOJI BUCKET**: 40+ emoji stored for random assignment
+- ✅ **RANDOM FILLING**: Emoji assegnati casualmente dal bucket ai default players
+- Sistema emoji immediato (no dipendenze icone esterne)
+- FUTURO: Preparato per icone personalizzate quando disponibili
+
+**3. TEAMS MANAGEMENT:**
+- ✅ DATABASE NECESSARIO per tracking accoppiamenti
+- Salvare storico accoppiamenti precedenti per garantire univocità
+- Algoritmo anti-ripetizione basato su database teams history
+- Teams univoci + Rounds univoci = varietà garantita nel tempo
+
+**4. IMPORT/EXPORT CSV:**
+- 📋 FEATURE FUTURA - non blocca sviluppo corrente
+- Import CSV per bulk loading players
+- Export risultati finali per analisi esterne
+- Implementazione step 4-5 del roadmap
+
+**5. SVILUPPO INCREMENTALE:**
+- 🎯 STEP-BY-STEP approach per stabilizzazione graduale
+- Focus su: funzionalità base → testing → ottimizzazioni
+- NO complex features che rallentano delivery
+
+**6. ALGORITMO BILANCIAMENTO TEAMS:**
+- 📊 RANKING AUTOMATICO: Ordina players per score (alto → basso)
+- 🔥 TOP 50% = BEASTS (giocatori più forti)
+- 🎨 BOTTOM 50% = COLORS (giocatori più deboli)  
+- 🤝 TEAM FORMULA: 1 BEAST + 1 COLOR = team bilanciato
+- 🔄 ROTAZIONE: teams history evita ripetizioni accoppiamenti
+
+**7. FEATURES POSTICIPATE E IMPLEMENTAZIONI SPECIFICHE:**
+- 📋 **IMPORT CSV**: Posticipato a FASE 6 (ottimizzazioni)
+- 💾 **BACKUP SISTEMA**: Posticipato a FASE 6 (ottimizzazioni) - Feature complessa per save/resume tornei
+- ⏰ **TIMER COUNTDOWN**: Implementazione specifica definita
+
+**TIMER IMPLEMENTATION:**
+- 🕐 **Countdown Timer**: Parte da MATCH_Duration (impostato in tournament settings)
+- 🟢 **Normal State**: Colore standard (verde/bianco)
+- 🟡 **Warning State**: Ultimi 2 minuti → Cambio colore background o font numeri
+- 🔴 **Finished State**: Timer a zero → Colore rosso finale
+- 🎯 **Visual Alert**: Cambio colore graduale per indicare tempo rimanente
+
+**DECISIONI PUNTO 7:**
+- ✅ Import/Export giocatori da CSV → FASE 6 (non blocca sviluppo core)
+- ✅ Backup/restore tornei → FASE 6 (feature complessa, focus su funzionalità base prima)
+- ✅ Timer visual warning → Implementazione countdown con alert colori ultimi 2 minuti
+
+**ESEMPIO PRATICO BUCKET SYSTEM:**
+- **BUCKET STORAGE**: 32 players template stored in database (Player 01 → Player 32)
+- **EMOJI BUCKET**: 40+ emoji stored for random assignment 🎾⚡🔥🌟💫⭐🏆🚀💎👑...
+
+**DYNAMIC DEFAULT GENERATION:**
+- **8 players tournament**: Load Player 01-08 → Random emoji assignment → Edit with real names → Auto ranking → Top 4 BEASTS + Bottom 4 COLORS → 4 balanced teams
+- **16 players tournament**: Load Player 01-16 → Random emoji assignment → Edit with real names → Auto ranking → Top 8 BEASTS + Bottom 8 COLORS → 8 balanced teams  
+- **24 players tournament**: Load Player 01-24 → Random emoji assignment → Edit with real names → Auto ranking → Top 12 BEASTS + Bottom 12 COLORS → 12 balanced teams
+- **32 players tournament**: Load all 32 → Random emoji assignment → Edit with real names → Auto ranking → Top 16 BEASTS + Bottom 16 COLORS → 16 balanced teams
+
+**FLOW**: BUCKET → DEFAULT (subset) → EDIT → RANKING → TEAMS
+
+**ROUNDMIN CALCULATION EXAMPLES:**
+- 8 players, 2 courts → 4 play + 4 rest → Min 2 rounds for balance
+- 16 players, 4 courts → 8 play + 8 rest → Min 2 rounds for balance  
+- 24 players, 4 courts → 16 play + 8 rest → Min 3 rounds for balance
+- 32 players, 8 courts → 16 play + 16 rest → Min 2 rounds for balance
+
+================================================================================
+                              PRIORITÀ DI SVILUPPO
+================================================================================
+
+FASE 0: TOURNAMENT SETTINGS (FOUNDATION) ⚙️
+- 🎯 UI configurazione parametri torneo (ENGLISH INTERFACE)
+- 🎯 Selezione numero giocatori: SOLO 8, 16, 24, 32 (no numeri dispari)
+- 🎯 Durata match (15-30 min)
+- 🎯 Numero campi disponibili (1-8)
+- 🎯 Nome torneo e location
+- 🎯 CALCOLO AUTOMATICO RoundMin per equilibrio match
+- 🎯 Inizializzazione database con players template dal BUCKET
+- 🎯 MILESTONE: Parametri salvati e confermati
+
+**ALGORITMO ROUNDMIN:**
+- Obiettivo: Garantire stesso numero di match per tutti i players
+- Formula: RoundMin = ceil(NumPlayers / (NumCourts * 2))
+- Esempio: 24 players, 4 campi → 16 giocano + 8 riposano → Min 3 round per 2+ match ciascuno
+- Constraint: Nessun player riposa 2 round consecutivi
+
+**TOURNAMENT STRUCTURE:**
+- ❌ NO PLAYOFF finali
+- ❌ NO numeri dispari players 
+- ✅ Solo classifica generale finale
+- ✅ Interfaccia completamente in INGLESE
+
+FASE 1: PLAYERS MANAGEMENT (STEP 1) 👥
+- 🎯 **BUCKET SYSTEM**: 32 players template stored in database
+- 🎯 **DYNAMIC DEFAULT**: carica subset dal bucket in base a tournament size
+  * 8 players tournament → Load first 8 from bucket (Player 01-08) 
+  * 16 players tournament → Load first 16 from bucket (Player 01-16)
+  * 24 players tournament → Load first 24 from bucket (Player 01-24) 
+  * 32 players tournament → Load all 32 from bucket (Player 01-32)
+- 🎯 **RANDOM ALIAS ASSIGNMENT**: Emoji assegnati casualmente dal bucket emoji disponibili
+- 🎯 Edit players: Replace template names with real players
+- 🎯 Assign custom scores (1-10)
+- 🎯 DYNAMIC RANKING: Auto ranking to divide BEASTS/COLORS
+- 🎯 Preview players with assigned categories and emoji
+- 🎯 MILESTONE: Players configured and ranking calculated
+
+FASE 2: TEAMS GENERATION (STEP 2) 🤝
+- 🎯 Algoritmo bilanciato: 1 BEAST + 1 COLOR per team
+- 🎯 Integrazione team_pairings_history per unicità
+- 🎯 UI preview teams con emoji
+- 🎯 Sistema conferma teams per proceed to rounds
+- 🎯 MILESTONE: Teams bilanciati e confermati
+
+FASE 3: ROUNDS SYSTEM (STEP 3 - CORE) ⚡
+- 🎯 Creazione UI rounds con match cards
+- 🎯 Sistema timer funzionante per ogni match
+- 🎯 Input scoring per ogni game
+- 🎯 Save match results nel database
+- 🎯 Sistema riposi alternato
+- 🎯 Round progression automatico
+- 🎯 MILESTONE: Round completo funzionante
+
+FASE 4: SCORING & RANKING (STEP 4) 🏆
+- 🔄 Sistema classifica live
+- 🔄 Calcolo punti: Game points + Match bonus
+- 🔄 Aggiornamento automatico dopo ogni match
+- 🔄 Display ranking in real-time
+- 🔄 Export risultati finali
+
+FASE 5: INTEGRATION & TESTING (STEP 5) 🧪
+- 🔄 Testing completo end-to-end
+- 🔄 Bug fixing e stabilizzazione
+- 🔄 Performance optimization
+- 🔄 UI/UX refinement
+- 🔄 Documentation finale
+
+FASE 6: OTTIMIZZAZIONI (NICE TO HAVE) ✨
+- 🔄 Import/Export CSV
+- 🔄 Advanced UI animations
+- 🔄 Statistics avanzate
+- 🔄 Backup/restore functionality
+- 🔄 Mobile optimizations
+
+STRATEGIA SVILUPPO:
+- 🎯 APPROCCIO STEP-BY-STEP: Una fase alla volta
+- ✅ TESTING MILESTONE: Ogni fase deve funzionare prima di continuare
+- 🔒 QUALITY GATE: No complex features che bloccano il progresso
+- 🎯 PRAGMATIC FIRST: Funzionalità base > Algoritmi perfetti
+- 📋 DAILY PROGRESS: Focus su deliverables misurabili
+
+MILESTONE TESTING PER FASE:
+- FASE 1: HTML carica, CSS responsive, JS modules loaded
+- FASE 2: Players CRUD completo, emoji assegnati correttamente
+- FASE 3: Teams generation senza duplicati, UI preview ok
+- FASE 4: Timer + scoring + save funzionanti per 1 round completo
+- FASE 5: Classifica aggiornata automaticamente, export dati
+- FASE 6: Features aggiuntive solo se non impattano stabilità
+
+BLOCCHI SVILUPPO DA EVITARE:
+- ❌ Algoritmi complessi di ottimizzazione abbinamenti
+- ❌ UI animations elaborate
+- ❌ Features "nice-to-have" che rallentano core functionality
+- ❌ Over-engineering database structure
+- ✅ Focus: WORKING FUNCTIONALITY > PERFECT ALGORITHMS
+
+================================================================================
+                                STRUTTURA UI
+================================================================================
+
+LAYOUT PRINCIPALE:
+┌─────────────────────────────────────────────────────────────┐
+│  FORMULA PADEL - Tournament Manager                        │
+├─────────────────────────────────────────────────────────────┤
+│  [Tournament][Players] [Teams] [Rounds] [League]         │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  TAB ROUNDS (DESIGN PRINCIPALE):                           │
+│                                                             │
+│  ┌─────── ROUND 1 ────────────────────────────────────┐    │
+│  │  ┌─── MATCH 1 ──────────────────────────────────┐  │    │
+│  │  │ Team Alpha vs Team Beta                      │  │    │
+│  │  │ [2] - [1]    Timer: 25:00  [START] [SAVE]   │  │    │
+│  │  └─────────────────────────────────────────────────┘  │    │
+│  │  ┌─── MATCH 2 ──────────────────────────────────┐  │    │
+│  │  │ Team Gamma vs Team Delta                     │  │    │
+│  │  │ [0] - [0]    Timer: 25:00  [START] [SAVE]   │  │    │
+│  │  └─────────────────────────────────────────────────┘  │    │
+│  └───────────────────────────────────────────────────────┘    │
+│                                                             │
+│  ┌─────── ROUND 2 ────────────────────────────────────┐    │
+│  │  ┌─── MATCH 1 ──────────────────────────────────┐  │    │
+│  │  │ Team Alpha vs Team Gamma                     │  │    │
+│  │  │ [_] - [_]    Timer: 25:00   [START] [SAVE]   │  │    │
+│  │  └─────────────────────────────────────────────────┘  │    │
+│  └───────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────┘
+
+================================================================================
+                               SPECIFICHE TECNICHE
+================================================================================
+
+TECNOLOGIE:
+- HTML5, CSS3, JavaScript ES6+
+- Moduli ES6 per organizzazione codice
+- SQLite database per persistenza scalabile
+- Responsive design
+
+ARCHITETTURA:
+- app.js: Controller principale
+- rounds-manager.js: Gestione rounds e match cards
+- timer-manager.js: Sistema timer
+- database/: Sistema database SQLite
+  ├── schema.sql: Struttura tabelle
+  └── database-manager.js: JavaScript wrapper
+- ui-components.js: Componenti UI riutilizzabili
+
+DATABASE SCHEMA:
+- tournaments: Dati tornei principali
+- default_names: **BUCKET** 32 players template (Player 01-32) con score default
+- tournament_players: **DEFAULT SUBSET** loaded dinamicamente per torneo (8,16,24,32)
+- teams: Coppie generate per torneo per ogni gruppo  
+- team_pairings_history: Tracking accoppiamenti per unicità
+- rounds: Organizzazione matches ogni round
+- matches: Singole partite con scores
+- player_stats: Statistiche automatiche calcolate
+
+COMPONENTI CHIAVE:
+- MatchCard: Singola carta match con timer/scoring
+- RoundContainer: Container per group di match
+- Timer: Countdown timer con start/stop/reset
+- ScoreInput: Input numerico per punteggi
+
+DEFAULT VALUES (bucket system):
+- Player template: "Player 01" to "Player 32" (score default: 5)
+- Player numbers: ONLY 8, 16, 24, 32 (no odd numbers)
+- Emoji aliases: 🎾⚡🔥🌟💫⭐🏆🚀💎👑🦅🐅🦁🐺⚽🏀🎯💪🔱⚔️🛡️🏹🎪🎭🎨🎵🎸🥁🎺🎻🎤🎬🌶️🍕🍔🌮🍰🍩☕🥤
+- Timer duration options: 10,15,20,25,30,45,60,90 minutes
+- Courts number: 1 to 8
+- Round numbers: from RoundMin (balance) to RoundMax (Np-1)
+
+================================================================================
+                           ALGORITMO RIPOSI DETTAGLIATO
+================================================================================
+
+LOGICA PRIORITÀ RIPOSI:
+1. Round 1: Sorteggio casuale definisce Gruppo A (attivo) e Gruppo B (riposo)
+2. Round 2: Gruppo B ha priorità (era in riposo) → diventa attivo
+3. Round 3: Gruppo A ha priorità (era in riposo Round 2) → diventa attivo
+4. Rotazione alternata continua...
+
+ESEMPIO PRATICO (16 players, 4 campi):
+Round 1: Attivi P1,P2,P3,P4,P5,P6,P7,P8 | Riposo P9-P16
+Round 2: Attivi P9,P10,P11,P12,P13,P14,P15,P16 | Riposo P1-P8  
+Round 3: Attivi P1,P2,P3,P4,P5,P6,P7,P8 | Riposo P9-P16
+
+VINCOLI GARANTITI:
+- Nessun player riposa 2 round consecutivi
+- Ogni player gioca stesso numero di round
+- Teams formati solo tra players attivi del round
+- Equilibrio automatico senza calcoli complessi
+
+ALGORITMO ABBINAMENTI (PRIORITÀ):
+1. MUST HAVE: Teams univoci per round + Riposi alternati
+2. MUST HAVE: Abbinamenti per ranking (Team N vs Team N+1) 
+3. NICE TO HAVE: Evitare re-match tra players (implementare solo se semplice)
+4. REGOLA: NON bloccare generazione rounds su ottimizzazioni complesse
+
+================================================================================
+                              SISTEMA SCORING DETTAGLIATO
+================================================================================
+
+DOPPIO PUNTEGGIO:
+1️⃣ GAME POINTS: 1 punto per ogni game vinto (anche perdendo il match)
+2️⃣ MATCH BONUS: +1 punto per vincere l'intero match
+
+ESEMPIO PRATICO:
+Match: Team A vs Team B → Risultato: 6-3 (Team A vince)
+
+PUNTEGGI INDIVIDUALI:
+- Player A1: +6 game points + 1 match bonus = 7 punti totali
+- Player A2: +6 game points + 1 match bonus = 7 punti totali  
+- Player B1: +3 game points + 0 match bonus = 3 punti totali
+- Player B2: +3 game points + 0 match bonus = 3 punti totali
+
+CLASSIFICA FINALE COLONNE:
+- Player Name
+- Games Won (somma game points)
+- Games Lost (somma game persi)  
+- Matches Won (numero match vinti)
+- Matches Played (numero match giocati)
+- Total Points (game points + match bonuses)
+- Game Difference (games won - games lost)
+
+VANTAGGI SISTEMA:
+✅ Incentiva a lottare anche perdendo il match
+✅ Match winner ottiene vantaggio (bonus)
+✅ Più equo per valutare performance individuale
+✅ Discriminante migliore per classifica finale
+
+================================================================================  
+================================================================================
+                                  NOTE DESIGN
+================================================================================
+
+COLORI:
+- Primary: #cba302ff (blu)
+- Secondary: #1c00bbff (verde)
+- Text: #6e6e6eff (verde)
+- Danger: #e74c3c (rosso)
+- Warning: #f39c12 (arancione)
+- Boxes: #ecd372ff (grigio chiaro)
+
+TIMER STATES:
+- IDLE: Grigio, mostra durata iniziale (es. 25:00)
+- RUNNING: Verde, countdown attivo da MATCH_Duration impostato
+- WARNING (Last 2 minutes): Cambio colore background o font numeri per visual alert
+- PAUSED: Arancione, timer fermato
+- FINISHED: Rosso, tempo scaduto (00:00)
+
+
+================================================================================
+                               IMPLEMENTAZIONE
+================================================================================
+
+PROSSIMI STEP:
+1. Creare index.html con struttura base
+2. Implementare CSS per layout rounds
+3. Creare rounds-manager.js con match cards
+4. Sviluppare sistema timer
+5. Aggiungere persistenza dati
+6. Testing e debugging
+
+CRITERI SUCCESSO:
+- Gestione dinamica dei players and del ranking
+- Generazione di TEAMS corretti e univoci
+- Creazione di Rounds 
+- Visualizzazione chiara dei rounds
+- Timer funzionante per ogni match
+- Scoring salvabile
+- UI responsive e intuitiva
+- Codice modulare e manutenibile
+
+================================================================================
