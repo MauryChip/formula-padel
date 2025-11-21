@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'self';">
+    <title>FORMULA PADEL — Tournament Manager</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div class="header-title">
+                <h1>FORMULA PADEL — Local Version</h1>
+                <p>Tournament Management System</p>
+            </div>
+        </div>
+    </header>
+
+    <!-- Notifications Container -->
+    <div id="notifications" class="notifications-container"></div>
+
+    <main>
+        <div class="tabs-bar">
+            <button id="tabSetup" class="tab-btn active">Tournament Setup</button>
+            <button id="tabPlayers" class="tab-btn">Players</button>
+            <button id="tabTeams" class="tab-btn">Teams</button>
+            <button id="tabRounds" class="tab-btn">Rounds & Matches</button>
+            <button id="tabLeague" class="tab-btn">League</button>
+            <button id="tabStats" class="tab-btn">Statistics</button>
+        </div>
+
+        <!-- Tournament Setup Tab -->
+        <div class="tab-panel visible" id="setupPanel">
+            <div class="content-header">
+                <h2><i class="fas fa-trophy"></i> Tournament Setup</h2>
+                <p>Configure your Formula Padel tournament parameters</p>
+            </div>
+
+            <!-- Tournament Configuration Form -->
+            <div class="settings-grid">
+                <div class="setting-group">
+                    <label for="tournamentName">Tournament Name</label>
+                    <input type="text" id="tournamentName" placeholder="Enter tournament name" required>
+                    <small>Give your tournament a memorable name</small>
+                </div>
+                
+                <div class="setting-group">
+                    <label for="tournamentDate">Tournament Date</label>
+                    <input type="date" id="tournamentDate" required>
+                    <small>Select the tournament date</small>
+                </div>
+                
+                <div class="setting-group">
+                    <label for="playerCount">Number of Players</label>
+                    <select id="playerCount" required>
+                        <option value="">Select player count</option>
+                        <option value="8">8 Players</option>
+                        <option value="16">16 Players</option>
+                        <option value="24">24 Players</option>
+                        <option value="32">32 Players</option>
+                    </select>
+                    <small>Fixed player counts for optimal tournament structure</small>
+                </div>
+                
+                <div class="setting-group">
+                    <label for="courtsCount">Number of Courts</label>
+                    <input type="number" id="courtsCount" min="1" max="10" value="4" required>
+                    <small>Available courts for matches</small>
+                </div>
+                
+                <div class="setting-group">
+                    <label for="matchDuration">Match Duration</label>
+                    <select id="matchDuration" required>
+                        <option value="">Select duration</option>
+                        <option value="3">🧪 3 minutes (TEST MODE)</option>
+                        <option value="15">15 minutes (Quick)</option>
+                        <option value="20">20 minutes (Short)</option>
+                        <option value="25">25 minutes (Standard)</option>
+                        <option value="30">30 minutes (Medium)</option>
+                        <option value="45">45 minutes (Long)</option>
+                        <option value="60">60 minutes (Extended)</option>
+                        <option value="90">90 minutes (Marathon)</option>
+                    </select>
+                    <small>Standard match duration for all rounds</small>
+                </div>
+                
+                <div class="setting-group">
+                    <label for="totalRounds">Tournament Rounds</label>
+                    <input type="number" id="totalRounds" min="1" placeholder="Auto-calculate if empty">
+                    <small>Leave empty for automatic calculation</small>
+                </div>
+            </div>
+            
+            <!-- Quick Presets -->
+            <div class="preset-section">
+                <h3>🎯 Quick Presets</h3>
+                <div class="preset-grid">
+                    <button class="button secondary" onclick="applyPreset('quick_8')">
+                        ⚡ Quick 8 Players
+                    </button>
+                    <button class="button secondary" onclick="applyPreset('standard_16')">
+                        🎯 Standard 16 Players
+                    </button>
+                    <button class="button secondary" onclick="applyPreset('large_24')">
+                        📈 Large 24 Players
+                    </button>
+                    <button class="button secondary" onclick="applyPreset('championship_32')">
+                        🏆 Championship 32 Players
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Tournament Calculation Display -->
+            <div class="tournament-info">
+                <h3>Tournament Calculation</h3>
+                <div class="calculation-display" id="calculationDisplay">
+                    <p>Select tournament parameters to see calculations</p>
+                </div>
+            </div>
+
+                        <div class="controls-section">
+                <button id="calculateBtn" type="button">Calculate Tournament</button>
+                <button id="createBtn" type="button">Create Tournament</button>
+                <button id="resetBtn" type="button">Reset Form</button>
+            </div>
+            
+            <!-- Tournament Preview Stats -->
+                        </div>
+
+            <!-- Notifications container -->
+        </div>
+
+        <!-- Players Management Tab -->
+        <!-- Players Management Tab -->
+        <div class="tab-panel" id="playersPanel">
+            <div class="content-header">
+                <h2><i class="fas fa-users"></i> Players Management</h2>
+                <p>Manage players for your tournament - Load default set, edit details, and confirm ranking</p>
+            </div>
+
+            <!-- Load Players Section -->
+            <div class="players-load-section">
+                <div class="load-controls">
+                    <h3><i class="fas fa-database"></i> Load Tournament Players</h3>
+                    <p>Generate players based on tournament configuration</p>
+                    <div class="load-action">
+                        <button class="button primary" id="loadTournamentPlayersBtn">
+                            <i class="fas fa-users"></i>
+                            Load Players
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Players List Section -->
+            <div class="players-list-section" id="playersListSection">
+                <div class="players-header" id="playersHeader" style="display: none;">
+                    <h3><i class="fas fa-list"></i> Tournament Players</h3>
+                    <div class="players-stats">
+                        <span class="stat-badge beasts" id="beastsCount">BEASTS: 0</span>
+                        <span class="stat-badge colors" id="colorsCount">COLORS: 0</span>
+                        <span class="stat-badge total" id="totalCount">TOTAL: 0</span>
+                    </div>
+                </div>
+
+                <div class="players-controls" id="playersControls" style="display: none;">
+                    <!-- <button class="button secondary" id="addPlayerBtn">
+                        <i class="fas fa-user-plus"></i>
+                        Add Player
+                    </button> -->
+                    <button class="button secondary" id="randomizeAliasesBtn">
+                        <i class="fas fa-sync"></i>
+                        Randomize Aliases
+                    </button>
+                    <button class="button secondary" id="updatePlayersBtn">
+                        <i class="fas fa-refresh"></i>
+                        Update Players
+                    </button>
+                    <button class="button success" id="savePlayersBtn">
+                        <i class="fas fa-save"></i>
+                        Save & Confirm Players
+                    </button>
+                </div>
+
+                <!-- Players Grid with Category Separation -->
+                <div class="players-categories" id="playersCategories" style="display: none;">
+                    <div class="category-section beast-section">
+                        <div class="category-header">
+                            <h4><i class="fas fa-dragon"></i> BEASTS</h4>
+                            <span class="category-count" id="beastCounter">0</span>
+                        </div>
+                        <div class="players-grid" id="beastsGrid">
+                            <!-- Beast players will be populated dynamically -->
+                        </div>
+                    </div>
+                    
+                    <div class="category-section color-section">
+                        <div class="category-header">
+                            <h4><i class="fas fa-palette"></i> COLORS</h4>
+                            <span class="category-count" id="colorCounter">0</span>
+                        </div>
+                        <div class="players-grid" id="colorsGrid">
+                            <!-- Color players will be populated dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Teams Management Tab -->
+        <div class="tab-panel" id="teamsPanel">
+            <div class="content-header">
+                <h2><i class="fas fa-users-cog"></i> Teams Management</h2>
+                <p>Generate and manage team formations for each round</p>
+            </div>
+
+            <!-- Round Info Section -->
+            <div class="teams-round-section">
+                <div id="currentRoundInfo" class="round-info">
+                    <h3><i class="fas fa-flag"></i> Round 1 Teams</h3>
+                    <p>Ready to generate teams</p>
+                </div>
+                <div class="teams-stats" id="teamsStats">
+                    <span class="stat-badge playing">PLAYING: 0</span>
+                    <span class="stat-badge resting">RESTING: 0</span>
+                    <span class="stat-badge total">TOTAL: 0</span>
+                </div>
+            </div>
+
+            <!-- Teams Controls -->
+            <div class="teams-controls">
+                <button class="button secondary" id="loadTeamsBtn">
+                    <i class="fas fa-folder-open"></i>
+                    Load Saved Teams
+                </button>
+                <button class="button primary" id="generateTeamsBtn">
+                    <i class="fas fa-magic"></i>
+                    Generate Teams
+                </button>
+                <button class="button secondary" id="shuffleTeamsBtn">
+                    <i class="fas fa-random"></i>
+                    Shuffle Last Group
+                </button>
+                <button class="button success" id="saveTeamsBtn">
+                    <i class="fas fa-save"></i>
+                    Save & Confirm Teams
+                </button>
+                <button class="button warning" id="resetTeamsBtn">
+                    <i class="fas fa-undo"></i>
+                    Reset All Rounds
+                </button>
+            </div>
+
+            <!-- Teams List Section -->
+            <div class="teams-list-section" id="teamsListSection" style="display: none;">
+                <!-- Teams Rounds Container -->
+                <div class="teams-rounds-container" id="teamsRoundsContainer">
+                    <!-- Teams rounds will be populated dynamically as collapsible groups -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Rounds & Matches Tab -->
+        <div class="tab-panel" id="roundsPanel">
+            <div class="content-header">
+                <h2><i class="fas fa-calendar-alt"></i> Rounds & Matches</h2>
+                <p>Generate rounds and manage match cards with timers and scoring</p>
+            </div>
+
+            <!-- Rounds Status Section -->
+            <div class="rounds-status">
+                <div id="currentRoundsInfo">
+                    <div class="status-loading">
+                        <span class="status-icon">⏳</span>
+                        <span class="status-text">Checking teams status...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rounds Controls -->
+            <div class="rounds-controls">
+                <button class="button primary" id="startRoundsBtn" disabled>
+                    <i class="fas fa-play"></i>
+                    Teams Required
+                </button>
+                <button class="button danger" id="clearRoundsBtn">
+                    <i class="fas fa-trash"></i>
+                    Clear All Rounds
+                </button>
+            </div>
+
+            <!-- Rounds Container -->
+            <div class="rounds-container" id="roundsContainer">
+                <!-- Round frames will be generated dynamically -->
+            </div>
+        </div>
+
+        <!-- League Tab -->
+        <div class="tab-panel" id="leaguePanel">
+            <div class="content-header">
+                <h2><i class="fas fa-trophy"></i> League Table</h2>
+                <p>Live ranking with game points and match bonuses</p>
+            </div>
+
+            <div class="controls">
+                <button class="button primary" id="refreshLeagueBtn">
+                    <i class="fas fa-sync-alt"></i>
+                    Refresh League
+                </button>
+                <button class="button secondary" id="resetLeagueBtn">
+                    <i class="fas fa-undo"></i>
+                    Reset League
+                </button>
+            </div>
+
+            <!-- League Table Container -->
+            <div class="league-container" id="leagueContainer">
+                <div class="league-table-wrapper">
+                    <table class="league-table" id="leagueTable">
+                        <thead>
+                            <tr>
+                                <th class="rank-col">#</th>
+                                <th class="emoji-col">🏆</th>
+                                <th class="player-col">Player Name</th>
+                                <th class="stats-col">Games Won</th>
+                                <th class="stats-col">Games Lost</th>
+                                <th class="stats-col">Matches Won</th>
+                                <th class="stats-col">Matches Played</th>
+                                <th class="stats-col">Total Points</th>
+                                <th class="stats-col">Games Diff</th>
+                                <th class="stats-col">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leagueTableBody">
+                            <!-- League rows will be populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Podium Section -->
+                <div class="podium-section" id="podiumSection" style="display: none;">
+                    <h3><i class="fas fa-medal"></i> Tournament Podium</h3>
+                    <div class="podium-container">
+                        <div class="podium-place second" id="podiumSecond">
+                            <div class="podium-player">
+                                <div class="place-number">2</div>
+                                <div class="player-name">-</div>
+                                <div class="player-points">- pts</div>
+                            </div>
+                        </div>
+                        <div class="podium-place first" id="podiumFirst">
+                            <div class="podium-player">
+                                <div class="place-number">1</div>
+                                <div class="player-name">-</div>
+                                <div class="player-points">- pts</div>
+                            </div>
+                        </div>
+                        <div class="podium-place third" id="podiumThird">
+                            <div class="podium-player">
+                                <div class="place-number">3</div>
+                                <div class="player-name">-</div>
+                                <div class="player-points">- pts</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics Tab -->
+        <div class="tab-panel" id="statsPanel">
+            <div class="content-header">
+                <h2><i class="fas fa-user-chart"></i> Player Statistics</h2>
+                <p>Analyze individual player performance and statistics</p>
+            </div>
+
+            <div class="player-selector-section">
+                <div class="setting-group">
+                    <label for="playerStatsSelect">Select Player for Analysis</label>
+                    <div class="input-group">
+                        <select id="playerStatsSelect">
+                            <option value="">Choose a player to analyze...</option>
+                        </select>
+                        <button class="button primary" id="analyzePlayerBtn" disabled>
+                            <i class="fas fa-search"></i>
+                            Analyze Player
+                        </button>
+                    </div>
+                    <small>Select any player to view detailed statistics and match history</small>
+                </div>
+            </div>
+
+            <!-- Player Analysis Container -->
+            <div id="playerAnalysisContainer" style="display: none;">
+                
+                <!-- Player Overview Card -->
+                <div class="player-overview-card">
+                    <div class="player-header">
+                        <div class="player-info">
+                            <span class="player-emoji" id="selectedPlayerEmoji">👤</span>
+                            <div class="player-details">
+                                <h3 id="selectedPlayerName">Player Name</h3>
+                                <div class="player-stats-summary" id="playerStatsSummary">
+                                    <!-- Stats summary will be populated -->
+                                </div>
+                            </div>
+                        </div>
+                        <div class="league-position">
+                            <div class="position-badge" id="playerLeaguePosition">
+                                <span class="position-number">#</span>
+                                <span class="position-label">League Position</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats Grid -->
+                <div class="stats-sections-grid">
+                    
+                    <!-- Teams Section -->
+                    <div class="stats-section">
+                        <div class="section-header">
+                            <h4><i class="fas fa-users"></i> Teams</h4>
+                            <span class="section-badge" id="teamsCount">0</span>
+                        </div>
+                        <div class="teams-list" id="playerTeamsList">
+                            <!-- Teams will be populated -->
+                        </div>
+                    </div>
+
+                    <!-- Matches Timeline -->
+                    <div class="stats-section">
+                        <div class="section-header">
+                            <h4><i class="fas fa-history"></i> Match History</h4>
+                            <span class="section-badge" id="matchesCount">0</span>
+                        </div>
+                        <div class="matches-timeline" id="playerMatchesTimeline">
+                            <!-- Matches timeline will be populated -->
+                        </div>
+                    </div>
+
+                    <!-- Performance Statistics -->
+                    <div class="stats-section">
+                        <div class="section-header">
+                            <h4><i class="fas fa-chart-line"></i> Performance</h4>
+                        </div>
+                        <div class="performance-stats" id="playerPerformanceStats">
+                            <!-- Performance stats will be populated -->
+                        </div>
+                    </div>
+
+                    <!-- Round Statistics -->
+                    <div class="stats-section">
+                        <div class="round-statistics" id="roundStatistics">
+                            <h4><i class="fas fa-chart-bar"></i> Round Statistics</h4>
+                            <div class="stats-grid">
+                                <!-- Round stats will be populated dynamically -->
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-container">
+            <div class="footer-links">
+                <span class="status" id="appStatus">Ready</span>
+                <span class="divider">|</span>
+                <span class="build">Formula Padel v2.0</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="database/database-manager.js"></script>
+    <script src="tournament-settings.js"></script>
+    <script src="players-manager.js"></script>
+    <script src="teams-manager.js"></script>
+    <script src="rounds-manager.js"></script>
+    <script src="league-manager.js"></script>
+    <script src="app.js"></script>
+    
+    <script>
+        // Tournament Presets Functions
+        function applyPreset(presetType) {
+            // Set today's date
+            document.getElementById('tournamentDate').value = new Date().toISOString().split('T')[0];
+            
+            // Auto-select bucket based on player count
+            function setBucketFromPlayerCount(playerCount) {
+                const bucket = Math.ceil(parseInt(playerCount) / 8); // 8 players per bucket
+                const bucketElement = document.getElementById('bucketNumber');
+                if (bucketElement) {
+                    bucketElement.value = Math.min(bucket, 5); // Max 5 buckets
+                }
+            }
+            
+            switch(presetType) {
+                case 'quick_8':
+                    document.getElementById('tournamentName').value = 'Quick Tournament';
+                    document.getElementById('playerCount').value = '8';
+                    document.getElementById('courtsCount').value = '2';
+                    document.getElementById('matchDuration').value = '15';
+                    setBucketFromPlayerCount('8');
+                    break;
+                    
+                case 'standard_16':
+                    document.getElementById('tournamentName').value = 'Standard Tournament';
+                    document.getElementById('playerCount').value = '16';
+                    document.getElementById('courtsCount').value = '4';
+                    document.getElementById('matchDuration').value = '25';
+                    setBucketFromPlayerCount('16');
+                    break;
+                    
+                case 'large_24':
+                    document.getElementById('tournamentName').value = 'Large Tournament';
+                    document.getElementById('playerCount').value = '24';
+                    document.getElementById('courtsCount').value = '6';
+                    document.getElementById('matchDuration').value = '30';
+                    setBucketFromPlayerCount('24');
+                    break;
+                    
+                case 'championship_32':
+                    document.getElementById('tournamentName').value = 'Championship Tournament';
+                    document.getElementById('playerCount').value = '32';
+                    document.getElementById('courtsCount').value = '8';
+                    document.getElementById('matchDuration').value = '30';
+                    setBucketFromPlayerCount('32');
+                    break;
+            }
+            
+            // Trigger calculation update if function exists
+            triggerCalculationUpdate();
+        }
+
+        // Auto-update bucket when player count changes
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set today's date by default
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('tournamentDate').value = today;
+            
+            const playerCountSelect = document.getElementById('playerCount');
+            if (playerCountSelect) {
+                playerCountSelect.addEventListener('change', function() {
+                    const playerCount = this.value;
+                    if (playerCount) {
+                        const bucket = Math.ceil(parseInt(playerCount) / 8);
+                        const bucketElement = document.getElementById('bucketNumber');
+                        if (bucketElement) {
+                            bucketElement.value = Math.min(bucket, 5);
+                        }
+                        
+                        // Trigger calculation update when player count changes
+                        triggerCalculationUpdate();
+                    }
+                });
+            }
+            
+            // Add event listeners for courts count and match duration
+            const courtsCountInput = document.getElementById('courtsCount');
+            if (courtsCountInput) {
+                courtsCountInput.addEventListener('input', triggerCalculationUpdate);
+            }
+            
+            const matchDurationSelect = document.getElementById('matchDuration');
+            if (matchDurationSelect) {
+                matchDurationSelect.addEventListener('change', triggerCalculationUpdate);
+            }
+        });
+        
+        // Global function to trigger calculation update
+        function triggerCalculationUpdate() {
+            // This will be called by the app when it's ready
+            if (window.formulaPadelApp && typeof window.formulaPadelApp.updateCalculationDisplay === 'function') {
+                window.formulaPadelApp.updateCalculationDisplay();
+            }
+        }
+    </script>
+</body>
+</html>

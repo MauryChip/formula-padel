@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Formula Padel - Beta Access</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .login-box { 
+            background: white; 
+            padding: 30px; 
+            border-radius: 15px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+        input { 
+            padding: 10px; 
+            margin: 10px; 
+            border: 1px solid #ddd; 
+            border-radius: 5px; 
+            width: 200px;
+        }
+        button { 
+            padding: 10px 20px; 
+            background: #667eea; 
+            color: white; 
+            border: none; 
+            border-radius: 5px; 
+            cursor: pointer;
+        }
+        h2 { color: #333; margin-bottom: 20px; }
+        .beta-info { color: #666; font-size: 14px; margin-top: 15px; }
+    </style>
+</head>
+<body>
+    <div class="login-box">
+        <h2>🎾 Formula Padel</h2>
+        <h3>Beta Testing Access</h3>
+        <form onsubmit="checkPassword(event)">
+            <input type="password" id="passwordInput" placeholder="Enter beta password" required>
+            <br>
+            <button type="submit">Access Beta App</button>
+        </form>
+        <div class="beta-info">
+            Private beta testing - Password required<br>
+            Contact developer for access
+        </div>
+    </div>
+
+    <script>
+        function checkPassword(event) {
+            event.preventDefault();
+            const password = document.getElementById('passwordInput').value;
+            
+            // Set your beta testing password here
+            const betaPassword = 'PADEL2025BETA'; // Change this!
+            
+            if (password === betaPassword) {
+                // Redirect to main app
+                window.location.href = 'tournament.html'; // or index.html
+            } else {
+                alert('❌ Invalid password. Please contact the developer for access.');
+                document.getElementById('passwordInput').value = '';
+            }
+        }
+    </script>
+</body>
+</html>

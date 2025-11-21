@@ -1,73 +1,150 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Formula Padel - Beta Access</title>
+    <title>🎾 Formula Padel - Private Beta</title>
     <style>
         body { 
-            font-family: Arial, sans-serif; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            height: 100vh; 
+            font-family: 'Inter', Arial, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-        .login-box { 
-            background: white; 
-            padding: 30px; 
-            border-radius: 15px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            color: white;
             text-align: center;
+            padding: 50px 20px;
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        input { 
-            padding: 10px; 
-            margin: 10px; 
-            border: 1px solid #ddd; 
-            border-radius: 5px; 
-            width: 200px;
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            color: #333;
+            padding: 50px 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            max-width: 400px;
+            width: 100%;
         }
-        button { 
-            padding: 10px 20px; 
-            background: #667eea; 
-            color: white; 
-            border: none; 
-            border-radius: 5px; 
+        h1 { 
+            color: #333; 
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        h2 {
+            color: #666;
+            margin-bottom: 30px;
+            font-weight: 400;
+        }
+        input {
+            width: 100%;
+            padding: 15px 20px;
+            font-size: 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 12px;
+            margin: 20px 0;
+            box-sizing: border-box;
+            transition: border-color 0.3s;
+        }
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        button {
+            width: 100%;
+            padding: 15px 20px;
+            font-size: 18px;
+            font-weight: 600;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
             cursor: pointer;
+            margin-top: 20px;
+            transition: transform 0.2s, box-shadow 0.2s;
         }
-        h2 { color: #333; margin-bottom: 20px; }
-        .beta-info { color: #666; font-size: 14px; margin-top: 15px; }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e1e5e9;
+            color: #888;
+            font-size: 14px;
+        }
+        .error {
+            color: #e74c3c;
+            margin-top: 15px;
+            display: none;
+            font-weight: 500;
+        }
     </style>
 </head>
 <body>
-    <div class="login-box">
-        <h2>🎾 Formula Padel</h2>
-        <h3>Beta Testing Access</h3>
-        <form onsubmit="checkPassword(event)">
-            <input type="password" id="passwordInput" placeholder="Enter beta password" required>
-            <br>
-            <button type="submit">Access Beta App</button>
+    <div class="container">
+        <h1>🎾 Formula Padel</h1>
+        <h2>Private Beta Access</h2>
+        
+        <form onsubmit="handleLogin(event)">
+            <input 
+                type="password" 
+                id="password" 
+                placeholder="Enter beta password..." 
+                required
+                autocomplete="off"
+            >
+            <button type="submit">🚀 Access Tournament Manager</button>
+            
+            <div class="error" id="errorMsg">
+                ❌ Invalid password. Contact developer for access.
+            </div>
         </form>
-        <div class="beta-info">
-            Private beta testing - Password required<br>
-            Contact developer for access
+        
+        <div class="footer">
+            <strong>Private Beta Testing</strong><br>
+            Password required for access<br>
+            <small>Built with ❤️ for the Padel community</small>
         </div>
     </div>
 
     <script>
-        function checkPassword(event) {
+        function handleLogin(event) {
             event.preventDefault();
-            const password = document.getElementById('passwordInput').value;
             
-            // Set your beta testing password here
-            const betaPassword = 'PADEL2025BETA'; // Change this!
+            const password = document.getElementById('password').value;
+            const errorMsg = document.getElementById('errorMsg');
+            const button = event.target.querySelector('button');
             
-            if (password === betaPassword) {
-                // Redirect to main app
-                window.location.href = 'tournament.html'; // or index.html
+            // Beta password
+            if (password === 'PADEL2025BETA') {
+                // Success feedback
+                button.innerHTML = '✅ Access Granted!';
+                button.style.background = 'linear-gradient(135deg, #27ae60 0%, #2ecc71 100%)';
+                
+                // Redirect after animation
+                setTimeout(() => {
+                    window.location.href = 'tournament.html';
+                }, 1000);
             } else {
-                alert('❌ Invalid password. Please contact the developer for access.');
-                document.getElementById('passwordInput').value = '';
+                // Error feedback
+                errorMsg.style.display = 'block';
+                document.getElementById('password').style.borderColor = '#e74c3c';
+                document.getElementById('password').value = '';
+                
+                // Reset after 3 seconds
+                setTimeout(() => {
+                    errorMsg.style.display = 'none';
+                    document.getElementById('password').style.borderColor = '#e1e5e9';
+                }, 3000);
             }
         }
+        
+        // Clear error when typing
+        document.getElementById('password').addEventListener('input', function() {
+            document.getElementById('errorMsg').style.display = 'none';
+            this.style.borderColor = '#e1e5e9';
+        });
     </script>
 </body>
 </html>
